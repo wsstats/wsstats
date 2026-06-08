@@ -250,6 +250,7 @@ function render() {
     canvas.style.visibility = isEmpty ? "hidden" : "visible";
     if (isEmpty) {
         if (chart) { chart.destroy(); chart = null; }
+        renderTable(filtered, fromVal, toVal);
         renderTod(filtered);
         return;
     }
@@ -431,7 +432,108 @@ function render() {
     };
 
     chart = new Chart(canvas, chartConfig);
+    renderTable(filtered, fromVal, toVal);
     renderTod(filtered);
+}
+
+// ── Monthly stats table ───────────────────────────────────────────────────────
+
+/**
+ * Compute per-month aggregate stats based on daily buckets in the date range.
+ * Days present in the range but absent from the data count as 0.
+ * @param {Array}  filtered  — already range-filtered raw entries
+ * @param {string} fromVal   — "YYYY-MM-DD" or ""
+ * @param {string} toVal     — "YYYY-MM-DD" or ""
+ * @returns {Array<Object>}
+ */
+function computeMonthlyStats(filtered, fromVal, toVal) {
+    const dailyMap = bucket(filtered, "daily");
+
+    // Resolve range boundaries
+    const allDays = [...dailyMap.keys()].sort();
+    const startDate = DateTime.fromISO(fromVal || (allDays[0] ?? null));
+    const endDate = DateTime.fromISO(toVal || (allDays[allDays.length - 1] ?? null));
+    if (!startDate.isValid || !endDate.isValid) return [];
+
+    const rows = [];
+    let monthStart = startDate.startOf("month");
+    const lastMonth = endDate.startOf("month");
+
+    while (monthStart.toMillis() <= lastMonth.toMillis()) {
+        const monthEnd = monthStart.endOf("month");
+
+        // Clamp to selected range
+        const rangeStart = monthStart.toMillis() >= startDate.toMillis() ? monthStart : startDate;
+        const rangeEnd = monthEnd.toMillis() <= endDate.toMillis() ? monthEnd : endDate;
+
+        // Enumerate every calendar day in [rangeStart, rangeEnd]
+        const values = [];
+        let d = rangeStart.startOf("day");
+        const lastDay = rangeEnd.startOf("day");
+        while (d.toMillis() <= lastDay.toMillis()) {
+            values.push(dailyMap.get(d.toISODate()) ?? 0);
+            d = d.plus({ days: 1 });
+        }
+
+        const n = values.length;
+        const total = values.reduce((a, b) => a + b, 0);
+        const mean = total / n;
+
+        const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / n;
+        const sd = Math.sqrt(variance);
+
+        const sorted = [...values].sort((a, b) => a - b);
+        const median = n % 2 === 1
+            ? sorted[Math.floor(n / 2)]
+            : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+
+        const freq = new Map();
+        for (const v of values) freq.set(v, (freq.get(v) ?? 0) + 1);
+        let mode = values[0], maxFreq = 0;
+        for (const [v, f] of freq) {
+            if (f > maxFreq || (f === maxFreq && v < mode)) { mode = v; maxFreq = f; }
+        }
+
+        rows.push({
+            year: monthStart.year,
+            month: monthStart.toFormat("LLLL"),
+            mean, sd, median, mode,
+            min: sorted[0],
+            max: sorted[n - 1],
+            total,
+        });
+
+        monthStart = monthStart.plus({ months: 1 });
+    }
+
+    return rows;
+}
+
+function renderTable(filtered, fromVal, toVal) {
+    const container = document.getElementById("stats-table-container");
+    const tbody = document.querySelector("#stats-table tbody");
+    const rows = computeMonthlyStats(filtered, fromVal, toVal);
+
+    tbody.innerHTML = "";
+    if (rows.length === 0) {
+        container.hidden = true;
+        return;
+    }
+
+    for (const row of rows) {
+        const tr = document.createElement("tr");
+        tr.innerHTML =
+            `<td>${row.year}</td>` +
+            `<td>${row.month}</td>` +
+            `<td>${row.mean.toFixed(1)} ± ${row.sd.toFixed(1)}</td>` +
+            `<td>${row.median.toFixed(1)}</td>` +
+            `<td>${row.mode}</td>` +
+            `<td>${row.min}</td>` +
+            `<td>${row.max}</td>` +
+            `<td>${row.total}</td>`;
+        tbody.appendChild(tr);
+    }
+    container.hidden = false;
 }
 
 // ── Time-of-day stacked area chart ────────────────────────────────────────────
