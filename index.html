@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wsstats</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <header>
+        <h1>wsstats</h1>
+
+        <!-- Date range -->
+        <div class="control-group">
+            <label for="date-from">From</label>
+            <input type="date" id="date-from" />
+        </div>
+        <div class="control-group">
+            <label for="date-to">To</label>
+            <input type="date" id="date-to" />
+        </div>
+
+        <!-- Bucket toggle -->
+        <div class="btn-group" role="group" aria-label="Bucket size">
+            <input type="checkbox" name="bucket" id="bucket-daily" value="daily" checked />
+            <label for="bucket-daily">Daily</label>
+            <input type="checkbox" name="bucket" id="bucket-weekly" value="weekly" />
+            <label for="bucket-weekly">Weekly</label>
+            <input type="checkbox" name="bucket" id="bucket-monthly" value="monthly" />
+            <label for="bucket-monthly">Monthly</label>
+        </div>
+
+        <!-- Cumsum toggle -->
+        <label class="cumsum-control">
+            <input type="checkbox" id="cumsum-toggle" />
+            Cumulative
+        </label>
+    </header>
+
+    <main>
+        <div class="chart-container">
+            <canvas id="chart"></canvas>
+            <div id="empty-msg" hidden>No data in selected range</div>
+        </div>
+        <div class="chart-container">
+            <canvas id="chart2"></canvas>
+        </div>
+    </main>
+
+    <!-- Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
