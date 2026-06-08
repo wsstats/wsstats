@@ -521,11 +521,21 @@ function renderTable(filtered, fromVal, toVal) {
         return;
     }
 
+    // Count rows per year for rowspan merging
+    const yearCount = {};
+    for (const row of rows) yearCount[row.year] = (yearCount[row.year] || 0) + 1;
+    const yearSeen = {};
+
     for (const row of rows) {
         const tr = document.createElement("tr");
+        let yearCell = "";
+        if (!yearSeen[row.year]) {
+            yearSeen[row.year] = true;
+            yearCell = `<td class="col-label" rowspan="${yearCount[row.year]}">${row.year}</td>`;
+        }
         tr.innerHTML =
-            `<td>${row.year}</td>` +
-            `<td>${row.month}</td>` +
+            yearCell +
+            `<td class="col-label">${row.month}</td>` +
             `<td>${row.mean.toFixed(1)} ± ${row.sd.toFixed(1)}</td>` +
             `<td>${row.median.toFixed(1)}</td>` +
             `<td>${row.mode}</td>` +

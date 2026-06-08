@@ -173,9 +173,8 @@ main {
 }
 
 #stats-table th:nth-child(1),
-#stats-table td:nth-child(1),
 #stats-table th:nth-child(2),
-#stats-table td:nth-child(2) {
+#stats-table td.col-label {
     text-align: left;
 }
 
