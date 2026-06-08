@@ -435,6 +435,40 @@ function render() {
     chart = new Chart(canvas, chartConfig);
     renderTable(filtered, fromVal, toVal);
     renderTod(filtered);
+    syncChartLayouts();
+}
+
+// ── Sync chart x-axis alignment ───────────────────────────────────────────────
+
+/**
+ * After both charts are rendered, equalise their left/right margins so the
+ * x-axes are pixel-aligned despite one chart having an extra y2 axis.
+ */
+function syncChartLayouts() {
+    if (!chart || !chart2) return;
+    const ca = chart.chartArea;
+    const ca2 = chart2.chartArea;
+    if (!ca || !ca2) return;
+
+    const targetLeft = Math.max(ca.left, ca2.left);
+    const targetRight = Math.max(chart.width - ca.right, chart2.width - ca2.right);
+
+    const padL1 = Math.round(targetLeft - ca.left);
+    const padR1 = Math.round(targetRight - (chart.width - ca.right));
+    const padL2 = Math.round(targetLeft - ca2.left);
+    // Chart.js's internal axis padding is not fully reflected in chartArea.right;
+    // add a small correction when chart has a right-side y2 axis.
+    const y2Extra = chart.scales.y2 ? 16 : 0;
+    const padR2 = Math.round(targetRight - (chart2.width - ca2.right)) + y2Extra;
+
+    if (padL1 > 0 || padR1 > 0) {
+        chart.config.options.layout = { padding: { left: padL1, right: padR1 } };
+        chart.update("none");
+    }
+    if (padL2 > 0 || padR2 > 0) {
+        chart2.config.options.layout = { padding: { left: padL2, right: padR2 } };
+        chart2.update("none");
+    }
 }
 
 // ── Monthly stats table ───────────────────────────────────────────────────────
