@@ -403,9 +403,7 @@ function render() {
             interaction: { mode: "index", intersect: false },
             plugins: {
                 legend: {
-                    display: activeBuckets.length > 1 || showCumsum,
-                    position: "top",
-                    labels: { font: { size: 11 }, boxWidth: 14 },
+                    display: false,
                 },
                 tooltip: {
                     mode: "index",
@@ -641,9 +639,7 @@ function renderTod(filtered) {
             interaction: { mode: "index", intersect: false },
             plugins: {
                 legend: {
-                    display: true,
-                    position: "top",
-                    labels: { font: { size: 11 }, boxWidth: 14 },
+                    display: false,
                 },
                 tooltip: {
                     mode: "index",
