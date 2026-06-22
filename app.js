@@ -771,7 +771,7 @@ function renderInterarrival(filtered) {
                 },
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: "Timegap (h)", font: { size: 11 } },
+                    title: { display: true, text: "Time since previous (h)", font: { size: 11 } },
                     grid: { color: "rgba(0,0,0,0.07)" },
                     ticks: { font: { size: 11 } },
                 },
