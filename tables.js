@@ -5,7 +5,7 @@ import { computeMonthlyStats, computeGapStats } from "./data.js";
 
 const { DateTime } = luxon;
 
-// ── Monthly stats table ───────────────────────────────────────────────────────
+//  Monthly stats table
 
 export function renderTable(filtered, fromVal, toVal) {
     const container = document.getElementById("stats-table-container");
@@ -92,7 +92,7 @@ export function renderTable(filtered, fromVal, toVal) {
         }
     }
 
-    // ── Total row ──
+    //  Total row
     if (rows.length > 1 && startDt.isValid && endDt.isValid) {
         const allValues = [];
         let d = startDt.startOf("day");
@@ -134,7 +134,7 @@ export function renderTable(filtered, fromVal, toVal) {
     container.hidden = false;
 }
 
-// ── Inter-event gap stats table ───────────────────────────────────────────────
+//  Inter-event gap stats table
 
 export function renderGapTable(filtered) {
     const container = document.getElementById("gap-table-container");
@@ -230,7 +230,7 @@ export function renderGapTable(filtered) {
         }
     }
 
-    // ── Total row ──
+    //  Total row
     if (rows.length > 1 && allGaps.length > 0) {
         const n = allGaps.length;
         const mean = allGaps.reduce((a, b) => a + b, 0) / n;

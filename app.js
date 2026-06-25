@@ -13,7 +13,7 @@ import { renderTable, renderGapTable } from "./tables.js";
 
 const { DateTime } = luxon;
 
-// ── DOM refs ──────────────────────────────────────────────────────────────────
+// DOM refs
 const dateFrom = document.getElementById("date-from");
 const dateTo = document.getElementById("date-to");
 const cumsumBox = document.getElementById("cumsum-toggle");
@@ -23,14 +23,14 @@ const canvas2 = document.getElementById("chart2");
 const canvas3 = document.getElementById("chart3");
 const canvas4 = document.getElementById("chart4");
 
-// ── State ────────────────────────────────────────────────────────────────────
+//  State
 let rawData = [];  // [{timestamp: string, value: number}, ...]
 let chart = null;
 let chart2 = null;
 let chart3 = null;
 let chart4 = null;
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+//  Helpers
 
 /** Returns selected bucket types sorted finest → coarsest; falls back to daily. */
 function getActiveBuckets() {
@@ -40,7 +40,7 @@ function getActiveBuckets() {
     return sel.length > 0 ? sel : ["daily"];
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
+//  Render
 
 function render() {
     const fromVal = dateFrom.value;
@@ -73,7 +73,7 @@ function render() {
     syncChartLayouts(chart, chart2, chart3);
 }
 
-// ── Initialise ────────────────────────────────────────────────────────────────
+//  Initialise
 
 async function init() {
     const resp = await fetch("data.json");
@@ -136,7 +136,7 @@ init().catch(err => {
     canvas.style.visibility = "hidden";
 });
 
-// ── Chart resize handles ──────────────────────────────────────────────────────
+//  Chart resize handles
 
 document.querySelectorAll(".chart-resizer").forEach(resizer => {
     resizer.addEventListener("mousedown", e => {

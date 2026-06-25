@@ -5,7 +5,7 @@ import { setSpanningBarsCfg, setHeatmapCfg, spanningBarsPlugin, heatmapPlugin } 
 
 const { DateTime } = luxon;
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+//  Constants
 
 export const BUCKET_TYPES = ["daily", "weekly", "monthly"];
 
@@ -30,7 +30,7 @@ const TOD_COLORS = [
     { bg: "rgba(124,  58, 237, 0.65)", border: "rgba(124,  58, 237, 0.9)" },  // 21-24 night
 ];
 
-// ── Bar chart (chart1) ────────────────────────────────────────────────────────
+//  Bar chart (chart1)
 
 /**
  * Render (or re-render) the main bar chart.
@@ -216,7 +216,7 @@ export function renderBarChart(oldChart, canvas, filtered, activeBuckets, showCu
     });
 }
 
-// ── Time-of-day stacked area chart (chart2) ───────────────────────────────────
+//  Time-of-day stacked area chart (chart2)
 
 /**
  * @param {Chart|null} oldChart
@@ -305,7 +305,7 @@ export function renderTodChart(oldChart, canvas, filtered, activeBuckets) {
     });
 }
 
-// ── Inter-arrival scatter plot (chart3) ───────────────────────────────────────
+//  Inter-arrival scatter plot (chart3)
 
 /**
  * @param {Chart|null} oldChart
@@ -395,7 +395,7 @@ export function renderInterarrivalChart(oldChart, canvas, filtered, activeBucket
     });
 }
 
-// ── Intra-period intensity heatmap (chart4) ───────────────────────────────────
+//  Intra-period intensity heatmap (chart4)
 
 /**
  * @param {Chart|null} oldChart
@@ -516,7 +516,7 @@ export function renderIntensityChart(oldChart, canvas, filtered, activeBuckets) 
     });
 }
 
-// ── Sync chart x-axis alignment ───────────────────────────────────────────────
+//  Sync chart x-axis alignment
 
 /**
  * After all charts are rendered, equalise their left/right margins so the

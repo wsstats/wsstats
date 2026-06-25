@@ -1,4 +1,4 @@
-// ── Shared plugin state (Option A: setter functions) ─────────────────────────
+//  Shared plugin state
 
 let spanningBarsCfg = [];
 let heatmapCfg = null;
@@ -11,7 +11,7 @@ export function setHeatmapCfg(cfg) {
     heatmapCfg = cfg;
 }
 
-// ── spanningBarsPlugin ────────────────────────────────────────────────────────
+//  spanningBarsPlugin
 
 /**
  * Custom plugin: draws coarse-bucket bars as full-width spanning rectangles.
@@ -74,7 +74,7 @@ export const spanningBarsPlugin = {
     },
 };
 
-// ── heatmapPlugin ─────────────────────────────────────────────────────────────
+//  heatmapPlugin
 
 /**
  * Custom plugin: renders the heatmap cells for chart4.
