@@ -242,7 +242,7 @@ export function renderInterarrivalChart(oldChart, canvas, filtered, activeBucket
                 borderColor: "rgba(99, 102, 241, 0.9)",
                 borderWidth: 1,
                 medianColor: "rgba(99, 102, 241, 1.0)",
-                itemRadius: totalGaps > 300 ? 0 : 4,
+                itemRadius: totalGaps > 1000 ? 0 : 4,
                 itemBackgroundColor: "rgba(99, 102, 241, 0.55)",
                 itemBorderColor: "rgba(99, 102, 241, 0.9)",
                 itemBorderWidth: 0,
