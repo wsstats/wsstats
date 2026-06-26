@@ -107,6 +107,35 @@ async function init() {
         render();
     });
     cumsumBox.addEventListener("change", render);
+
+    // Info panel toggle
+    document.querySelector("main").addEventListener("click", e => {
+        const btn = e.target.closest(".info-btn");
+        if (btn) {
+            const container = btn.closest(".chart-container");
+            const panel = container.querySelector(".info-panel");
+            const isOpen = panel.classList.contains("info-panel--open");
+            // Close all panels first
+            document.querySelectorAll(".info-panel--open").forEach(p => {
+                p.classList.remove("info-panel--open");
+                p.closest(".chart-container").querySelector(".info-btn").setAttribute("aria-expanded", "false");
+            });
+            if (!isOpen) {
+                panel.classList.add("info-panel--open");
+                btn.setAttribute("aria-expanded", "true");
+            }
+            return;
+        }
+    });
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+            document.querySelectorAll(".info-panel--open").forEach(p => {
+                p.classList.remove("info-panel--open");
+                p.closest(".chart-container").querySelector(".info-btn").setAttribute("aria-expanded", "false");
+            });
+        }
+    });
+
     document.querySelectorAll('input[name="bucket"]').forEach(r =>
         r.addEventListener("change", e => {
             if (e.target.checked) {

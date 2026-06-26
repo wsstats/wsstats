@@ -48,20 +48,85 @@
 
     <main>
         <div class="chart-container">
-            <canvas id="chart1"></canvas>
-            <div id="empty-msg" hidden>No data in selected range</div>
+            <div class="chart-header">
+                <span class="chart-title">Events over time by hour</span>
+                <button class="info-btn" aria-label="Chart info" aria-expanded="false">ⓘ</button>
+            </div>
+            <div class="chart-body">
+                <canvas id="chart1"></canvas>
+                <div id="empty-msg" hidden>No data in selected range</div>
+                <div class="info-panel" role="region" aria-label="Chart explanation">
+                    <p><strong>What it shows:</strong> A stacked area chart where each colour band represents one
+                        clock-hour of the day. The combined height of a column equals the total number of events in that
+                        period.</p>
+                    <p><strong>How to read it:</strong> Hover over a column to see the exact count for every hour. When
+                        the <em>Cumulative</em> toggle is on, a red line on the right axis shows the running total of
+                        all events.</p>
+                    <p><strong>What to look for:</strong> Tall columns mark high-activity periods. The colour mix
+                        reveals which hours of the day drive the volume. A steepening cumulative slope signals
+                        acceleration; a flattening slope signals slowdown.</p>
+                </div>
+            </div>
         </div>
         <div class="chart-resizer" aria-label="Resize chart" role="separator"></div>
         <div class="chart-container">
-            <canvas id="chart2"></canvas>
+            <div class="chart-header">
+                <span class="chart-title">Activity heatmap</span>
+                <button class="info-btn" aria-label="Chart info" aria-expanded="false">ⓘ</button>
+            </div>
+            <div class="chart-body">
+                <canvas id="chart2"></canvas>
+                <div class="info-panel" role="region" aria-label="Chart explanation">
+                    <p><strong>What it shows:</strong> A grid where each cell's darkness encodes the event count for a
+                        specific time slot within a period. X-axis = time period (day / week / month); Y-axis = sub-slot
+                        (hour of day / weekday / day of month).</p>
+                    <p><strong>How to read it:</strong> Darker cells = more events. Hover a cell to see the exact count
+                        and coordinates.</p>
+                    <p><strong>What to look for:</strong> Dark columns mark busy periods overall. Dark rows reveal time
+                        slots that are consistently active. Isolated dark cells are one-off spikes worth investigating.
+                    </p>
+                </div>
+            </div>
         </div>
         <div class="chart-resizer" aria-label="Resize chart" role="separator"></div>
         <div class="chart-container">
-            <canvas id="chart3"></canvas>
+            <div class="chart-header">
+                <span class="chart-title">Slot load distribution</span>
+                <button class="info-btn" aria-label="Chart info" aria-expanded="false">ⓘ</button>
+            </div>
+            <div class="chart-body">
+                <canvas id="chart3"></canvas>
+                <div class="info-panel" role="region" aria-label="Chart explanation">
+                    <p><strong>What it shows:</strong> For each time slot (e.g. hour of day), this heatmap shows how
+                        often that slot reached a given event count across all periods in the selected range. X-axis =
+                        time slot; Y-axis = event count per slot; cell darkness = number of periods with that count.</p>
+                    <p><strong>How to read it:</strong> Hover a cell for exact figures. The Y-axis only includes count
+                        values that actually occurred — gaps in Y mean those counts were never observed.</p>
+                    <p><strong>What to look for:</strong> A tall dark cluster on a slot = predictable load. Scattered
+                        cells across a wide Y range = high variability. Blank slots = the period never had any events at
+                        that time.</p>
+                </div>
+            </div>
         </div>
         <div class="chart-resizer" aria-label="Resize chart" role="separator"></div>
         <div class="chart-container">
-            <canvas id="chart4"></canvas>
+            <div class="chart-header">
+                <span class="chart-title">Time between events</span>
+                <button class="info-btn" aria-label="Chart info" aria-expanded="false">ⓘ</button>
+            </div>
+            <div class="chart-body">
+                <canvas id="chart4"></canvas>
+                <div class="info-panel" role="region" aria-label="Chart explanation">
+                    <p><strong>What it shows:</strong> A box-and-whisker plot of the gap (in hours) between consecutive
+                        events, grouped by the selected bucket period.</p>
+                    <p><strong>How to read it:</strong> The box spans the IQR (25th–75th percentile); the centre line is
+                        the median; whiskers extend to the full range; red dots are outliers. Hover for exact
+                        statistics.</p>
+                    <p><strong>What to look for:</strong> A tight, low box = events arrive at a consistent, frequent
+                        pace. A tall box or many outliers = irregular bursts with long quiet stretches in between. A
+                        rising median over time = events are becoming less frequent.</p>
+                </div>
+            </div>
         </div>
         <div class="chart-resizer" aria-label="Resize chart" role="separator"></div>
         <div id="stats-table-container" class="table-container" hidden>
