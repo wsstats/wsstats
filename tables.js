@@ -172,6 +172,7 @@ export function renderGapTable(filtered) {
         }
     }
 
+    let isFirstGapRow = true;
     for (const [year, yearRows] of rowsByYear) {
         for (let i = 0; i < yearRows.length; i++) {
             const row = yearRows[i];
@@ -187,7 +188,8 @@ export function renderGapTable(filtered) {
                 `<td>${row.mode.toFixed(1)} <span class="count">(×${row.modeCount})</span></td>` +
                 `<td>${row.min.toFixed(1)} <span class="count">(×${row.minCount})</span></td>` +
                 `<td>${row.max.toFixed(1)} <span class="count">(×${row.maxCount})</span></td>` +
-                `<td>${row.total}</td>`;
+                `<td>${isFirstGapRow ? row.total + 1 : row.total}</td>`;
+            isFirstGapRow = false;
             tbody.appendChild(tr);
         }
 

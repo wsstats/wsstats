@@ -122,7 +122,7 @@ export function computeGapStats(filtered) {
         const minCount = sortedGaps.filter(v => v === minGap).length;
         const maxCount = sortedGaps.filter(v => v === maxGap).length;
 
-        rows.push({ year, month, mean, sd, median, mode, modeCount: maxFreq, min: minGap, minCount, max: maxGap, maxCount, total: n + 1 });
+        rows.push({ year, month, mean, sd, median, mode, modeCount: maxFreq, min: minGap, minCount, max: maxGap, maxCount, total: n });
     }
     return rows;
 }
