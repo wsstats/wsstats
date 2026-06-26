@@ -17,17 +17,17 @@ const dateFrom = document.getElementById("date-from");
 const dateTo = document.getElementById("date-to");
 const cumsumBox = document.getElementById("cumsum-toggle");
 const emptyMsg = document.getElementById("empty-msg");
+const canvas1 = document.getElementById("chart1");
 const canvas2 = document.getElementById("chart2");
 const canvas3 = document.getElementById("chart3");
 const canvas4 = document.getElementById("chart4");
-const canvas5 = document.getElementById("chart5");
 
 //  State
 let rawData = [];  // [{timestamp: string, value: number}, ...]
+let chart1 = null;
 let chart2 = null;
 let chart3 = null;
 let chart4 = null;
-let chart5 = null;
 
 //  Helpers
 
@@ -54,14 +54,14 @@ function render() {
 
     const isEmpty = bucket(filtered, finestType).size === 0;
     emptyMsg.hidden = !isEmpty;
-    canvas2.style.visibility = isEmpty ? "hidden" : "visible";
+    canvas1.style.visibility = isEmpty ? "hidden" : "visible";
 
     renderTable(filtered, fromVal, toVal);
     renderGapTable(filtered);
-    chart2 = renderTodChart(chart2, canvas2, filtered, activeBuckets, cumsumBox.checked);
-    chart3 = renderInterarrivalChart(chart3, canvas3, filtered, activeBuckets);
-    chart4 = renderIntensityChart(chart4, canvas4, filtered, activeBuckets);
-    chart5 = renderSumFrequencyChart(chart5, canvas5, filtered, activeBuckets);
+    chart1 = renderTodChart(chart1, canvas1, filtered, activeBuckets, cumsumBox.checked);
+    chart2 = renderIntensityChart(chart2, canvas2, filtered, activeBuckets);
+    chart3 = renderSumFrequencyChart(chart3, canvas3, filtered, activeBuckets);
+    chart4 = renderInterarrivalChart(chart4, canvas4, filtered, activeBuckets);
 }
 
 //  Initialise
@@ -73,7 +73,7 @@ async function init() {
 
     if (rawData.length === 0) {
         emptyMsg.hidden = false;
-        canvas2.style.visibility = "hidden";
+        canvas1.style.visibility = "hidden";
         return;
     }
 
