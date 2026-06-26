@@ -104,7 +104,7 @@ export function renderTodChart(oldChart, canvas, filtered, activeBuckets, showCu
             stepped: "after",
             fill: false,
             yAxisID: "y2",
-            order: 0,
+            order: -1,
         });
     }
 
