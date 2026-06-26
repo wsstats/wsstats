@@ -525,7 +525,8 @@ export function renderSumFrequencyChart(oldChart, canvas, filtered, activeBucket
                     callbacks: {
                         label(ctx) {
                             const { x: xi, y: yi, count } = ctx.raw;
-                            return `${xLabels[xi]}, sum=${yValues[yi]}: ${count} period${count !== 1 ? "s" : ""}`;
+                            const xLabel = finestType === "daily" ? `${xLabels[xi]}:00` : xLabels[xi];
+                            return `${xLabel}, sum=${yValues[yi]}: ${count} period${count !== 1 ? "s" : ""}`;
                         },
                     },
                 },
