@@ -1,22 +1,15 @@
-//  Shared plugin state
-
-let heatmapCfg = null;
-
-export function setHeatmapCfg(cfg) {
-    heatmapCfg = cfg;
-}
-
 //  heatmapPlugin
 
 /**
- * Custom plugin: renders the heatmap cells for chart4.
- * Reads config from the module-level heatmapCfg variable.
+ * Custom plugin: renders the heatmap cells for heatmap charts.
+ * Reads config from chart.options.plugins.heatmap.
  */
 export const heatmapPlugin = {
     id: "heatmap",
     beforeDatasetsDraw(chart) {
-        if (!heatmapCfg) return;
-        const { cells, nX, nY, maxCount } = heatmapCfg;
+        const cfg = chart.options.plugins?.heatmap;
+        if (!cfg) return;
+        const { cells, nX, nY, maxCount } = cfg;
         if (!maxCount) return;
 
         const xScale = chart.scales.x;

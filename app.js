@@ -6,6 +6,7 @@ import {
     renderTodChart,
     renderInterarrivalChart,
     renderIntensityChart,
+    renderSumFrequencyChart,
 } from "./charts.js";
 import { renderTable, renderGapTable } from "./tables.js";
 
@@ -19,12 +20,14 @@ const emptyMsg = document.getElementById("empty-msg");
 const canvas2 = document.getElementById("chart2");
 const canvas3 = document.getElementById("chart3");
 const canvas4 = document.getElementById("chart4");
+const canvas5 = document.getElementById("chart5");
 
 //  State
 let rawData = [];  // [{timestamp: string, value: number}, ...]
 let chart2 = null;
 let chart3 = null;
 let chart4 = null;
+let chart5 = null;
 
 //  Helpers
 
@@ -58,6 +61,7 @@ function render() {
     chart2 = renderTodChart(chart2, canvas2, filtered, activeBuckets, cumsumBox.checked);
     chart3 = renderInterarrivalChart(chart3, canvas3, filtered, activeBuckets);
     chart4 = renderIntensityChart(chart4, canvas4, filtered, activeBuckets);
+    chart5 = renderSumFrequencyChart(chart5, canvas5, filtered, activeBuckets);
 }
 
 //  Initialise

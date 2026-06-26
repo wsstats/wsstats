@@ -1,7 +1,7 @@
 /* global luxon, Chart */
 
 import { bucket, fillGaps, cumsum, bucketKey, parseKey, parseTs, todBucket } from "./utils.js";
-import { setHeatmapCfg, heatmapPlugin } from "./plugins.js";
+import { heatmapPlugin } from "./plugins.js";
 
 const { DateTime } = luxon;
 
@@ -282,42 +282,48 @@ export function renderInterarrivalChart(oldChart, canvas, filtered, activeBucket
  */
 export function renderIntensityChart(oldChart, canvas, filtered, activeBuckets) {
     if (oldChart) oldChart.destroy();
-    setHeatmapCfg(null);
     if (filtered.length === 0) return null;
 
     const finestType = activeBuckets[0];
 
-    let slotFn, xLabels, xTitle;
+    // X-axis: one column per outer bucket (day / week / month)
+    const outerFilled = fillGaps(bucket(filtered, finestType), finestType);
+    const xLabels = [...outerFilled.keys()];
+    const xLabelIdx = new Map(xLabels.map((k, i) => [k, i]));
+    const nX = xLabels.length;
+
+    // Y-axis: finer sub-bucket within each outer period
+    let ySlotFn, yLabels, yTitle, xTitle;
     if (finestType === "daily") {
-        slotFn = dt => dt.hour;
-        xLabels = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
-        xTitle = "Hour of day";
+        ySlotFn = dt => dt.hour;
+        yLabels = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+        yTitle = "Hour of day";
+        xTitle = "Day";
     } else if (finestType === "weekly") {
-        slotFn = dt => dt.weekday - 1;  // 0 = Mon … 6 = Sun
-        xLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-        xTitle = "Day of week";
+        ySlotFn = dt => dt.weekday - 1;  // 0 = Mon … 6 = Sun
+        yLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        yTitle = "Day of week";
+        xTitle = "Week";
     } else {
-        slotFn = dt => dt.day - 1;      // 0 = 1st … 30 = 31st
-        xLabels = Array.from({ length: 31 }, (_, i) => String(i + 1));
-        xTitle = "Day of month";
+        ySlotFn = dt => dt.day - 1;      // 0 = 1st … 30 = 31st
+        yLabels = Array.from({ length: 31 }, (_, i) => String(i + 1));
+        yTitle = "Day of month";
+        xTitle = "Month";
     }
 
-    const nX = xLabels.length;
-    const yValues = [...new Set(filtered.map(e => e.value))].sort((a, b) => a - b);
-    const nY = yValues.length;
-    const valueToIdx = new Map(yValues.map((v, i) => [v, i]));
+    const nY = yLabels.length;
 
+    // Accumulate value sums into cells[xi][yi]
     const cells = Array.from({ length: nX }, () => new Array(nY).fill(0));
     let maxCount = 0;
     for (const { timestamp, value } of filtered) {
-        const xi = slotFn(parseTs(timestamp));
-        const yi = valueToIdx.get(value);
-        if (yi === undefined) continue;
-        cells[xi][yi]++;
+        const dt = parseTs(timestamp);
+        const xi = xLabelIdx.get(bucketKey(dt, finestType));
+        if (xi === undefined) continue;
+        const yi = ySlotFn(dt);
+        cells[xi][yi] += value;
         if (cells[xi][yi] > maxCount) maxCount = cells[xi][yi];
     }
-
-    setHeatmapCfg({ cells, nX, nY, maxCount, xLabels, yValues });
 
     const points = [];
     for (let xi = 0; xi < nX; xi++) {
@@ -343,11 +349,12 @@ export function renderIntensityChart(oldChart, canvas, filtered, activeBuckets) 
             interaction: { mode: "nearest", intersect: true },
             plugins: {
                 legend: { display: false },
+                heatmap: { cells, nX, nY, maxCount },
                 tooltip: {
                     callbacks: {
                         label(ctx) {
                             const { x: xi, y: yi, count } = ctx.raw;
-                            return `${xLabels[xi]}, value ${yValues[yi]}: ${count} event${count !== 1 ? "s" : ""}`;
+                            return `${xLabels[xi]}, ${yLabels[yi]}: ${count}`;
                         },
                     },
                 },
@@ -373,7 +380,151 @@ export function renderIntensityChart(oldChart, canvas, filtered, activeBuckets) 
                     type: "linear",
                     min: -0.5,
                     max: nY - 0.5,
-                    title: { display: true, text: "Value", font: { size: 11 } },
+                    title: { display: true, text: yTitle, font: { size: 11 } },
+                    afterBuildTicks(scale) {
+                        scale.ticks = yLabels.map((_, i) => ({ value: i }));
+                    },
+                    ticks: {
+                        font: { size: 11 },
+                        callback(val) {
+                            const v = yLabels[Math.round(val)];
+                            return v !== undefined ? v : "";
+                        },
+                    },
+                    grid: { color: "rgba(0,0,0,0.07)" },
+                },
+            },
+        },
+        plugins: [heatmapPlugin],
+    });
+}
+
+//  Sum-frequency heatmap (chart5)
+
+export function renderSumFrequencyChart(oldChart, canvas, filtered, activeBuckets) {
+    if (oldChart) oldChart.destroy();
+    if (filtered.length === 0) return null;
+
+    const finestType = activeBuckets[0];
+
+    // X-axis: time slot within each outer period
+    let slotFn, xLabels, xTitle, yTitle;
+    if (finestType === "daily") {
+        slotFn = dt => dt.hour;
+        xLabels = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+        xTitle = "Hour of day";
+        yTitle = "Hourly sum";
+    } else if (finestType === "weekly") {
+        slotFn = dt => dt.weekday - 1;  // 0 = Mon … 6 = Sun
+        xLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        xTitle = "Day of week";
+        yTitle = "Daily sum";
+    } else {
+        slotFn = dt => dt.day - 1;      // 0 = 1st … 30 = 31st
+        xLabels = Array.from({ length: 31 }, (_, i) => String(i + 1));
+        xTitle = "Day of month";
+        yTitle = "Daily sum";
+    }
+
+    const nX = xLabels.length;
+
+    // Step 1: accumulate value sum per (outer-period, slot)
+    const subSums = new Map();   // "<outerKey>|<slot>" -> sum
+    const subSlots = new Map();  // "<outerKey>|<slot>" -> slot index
+    for (const { timestamp, value } of filtered) {
+        const dt = parseTs(timestamp);
+        const outerKey = bucketKey(dt, finestType);
+        const slot = slotFn(dt);
+        const k = `${outerKey}|${slot}`;
+        subSums.set(k, (subSums.get(k) ?? 0) + value);
+        subSlots.set(k, slot);
+    }
+
+    // Step 2: for each slot, build frequency distribution of sub-bucket sums
+    const slotDistrib = Array.from({ length: nX }, () => new Map());
+    for (const [k, sum] of subSums) {
+        const slot = subSlots.get(k);
+        const distrib = slotDistrib[slot];
+        distrib.set(sum, (distrib.get(sum) ?? 0) + 1);
+    }
+
+    // Y-axis: sorted unique sum values across all slots
+    const allSumValues = new Set();
+    for (const distrib of slotDistrib) {
+        for (const sum of distrib.keys()) allSumValues.add(sum);
+    }
+    const yValues = [...allSumValues].sort((a, b) => a - b);
+    const nY = yValues.length;
+    if (nY === 0) return null;
+    const sumToIdx = new Map(yValues.map((v, i) => [v, i]));
+
+    // cells[xi][yi] = count of outer periods where slot xi summed to yValues[yi]
+    const cells = Array.from({ length: nX }, () => new Array(nY).fill(0));
+    let maxCount = 0;
+    for (let xi = 0; xi < nX; xi++) {
+        for (const [sum, count] of slotDistrib[xi]) {
+            const yi = sumToIdx.get(sum);
+            cells[xi][yi] = count;
+            if (count > maxCount) maxCount = count;
+        }
+    }
+
+    const points = [];
+    for (let xi = 0; xi < nX; xi++) {
+        for (let yi = 0; yi < nY; yi++) {
+            if (cells[xi][yi] > 0)
+                points.push({ x: xi, y: yi, count: cells[xi][yi] });
+        }
+    }
+
+    return new Chart(canvas, {
+        type: "scatter",
+        data: {
+            datasets: [{
+                data: points,
+                pointRadius: 0,
+                pointHitRadius: 12,
+            }],
+        },
+        options: {
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "nearest", intersect: true },
+            plugins: {
+                legend: { display: false },
+                heatmap: { cells, nX, nY, maxCount },
+                tooltip: {
+                    callbacks: {
+                        label(ctx) {
+                            const { x: xi, y: yi, count } = ctx.raw;
+                            return `${xLabels[xi]}, sum=${yValues[yi]}: ${count} period${count !== 1 ? "s" : ""}`;
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    type: "linear",
+                    min: -0.5,
+                    max: nX - 0.5,
+                    title: { display: true, text: xTitle, font: { size: 11 } },
+                    afterBuildTicks(scale) {
+                        scale.ticks = Array.from({ length: nX }, (_, i) => ({ value: i }));
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxRotation: 45,
+                        font: { size: 11 },
+                        callback(val) { return xLabels[val] ?? ""; },
+                    },
+                    grid: { color: "rgba(0,0,0,0.05)" },
+                },
+                y: {
+                    type: "linear",
+                    min: -0.5,
+                    max: nY - 0.5,
+                    title: { display: true, text: yTitle, font: { size: 11 } },
                     afterBuildTicks(scale) {
                         scale.ticks = yValues.map((_, i) => ({ value: i }));
                     },
