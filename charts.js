@@ -188,6 +188,13 @@ export function renderTodChart(oldChart, canvas, filtered, activeBuckets, showCu
                             const hNext = String((+h + 1) % 24).padStart(2, "0");
                             return `${h}:00\u2013${hNext}:00: ${ctx.parsed.y}`;
                         },
+                        footer(tooltipItems) {
+                            const total = tooltipItems.reduce((sum, item) => {
+                                if (item.dataset.yAxisID === "y2") return sum;
+                                return sum + (item.parsed.y || 0);
+                            }, 0);
+                            return `Total: ${total}`;
+                        },
                     },
                 },
             },
