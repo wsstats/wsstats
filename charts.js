@@ -63,7 +63,7 @@ export function renderTodChart(oldChart, canvas, filtered, activeBuckets, showCu
     if (finestSparse.size === 0) return null;
 
     const finestFilled = fillGaps(finestSparse, finestType);
-    const labels = [...finestFilled.keys()];
+    let labels = [...finestFilled.keys()];
 
     const todMaps = new Map(TOD_HOURS.map(t => [t, new Map()]));
     for (const { timestamp } of filtered) {
@@ -133,9 +133,24 @@ export function renderTodChart(oldChart, canvas, filtered, activeBuckets, showCu
         });
     }
 
+    // Single-bucket: duplicate the sole data point so each series renders as a
+    // horizontal line with a filled area beneath it rather than a lone dot.
+    if (labels.length === 1) {
+        labels = [labels[0], labels[0]];
+        for (const ds of datasets) {
+            ds.data = [ds.data[0], ds.data[0]];
+        }
+    }
+
     const scales = {
         x: {
-            ticks: { maxRotation: 45, autoSkip: true, font: { size: 11 } },
+            ticks: {
+                maxRotation: 45,
+                autoSkip: true,
+                font: { size: 11 },
+                // Suppress the repeated right-hand tick added for the single-bucket case.
+                callback(val, i) { return (i === 1 && labels[0] === labels[1]) ? "" : labels[i]; },
+            },
             grid: { color: "rgba(0,0,0,0.05)" },
         },
         y: {
