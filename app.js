@@ -16,6 +16,9 @@ const { DateTime } = luxon;
 const dateFrom = document.getElementById("date-from");
 const dateTo = document.getElementById("date-to");
 const cumsumBox = document.getElementById("cumsum-toggle");
+const gapMaxBox = document.getElementById("gap-max-toggle");
+const gapMeanBox = document.getElementById("gap-mean-toggle");
+const gapMedianBox = document.getElementById("gap-median-toggle");
 const emptyMsg = document.getElementById("empty-msg");
 const canvas1 = document.getElementById("chart1");
 const canvas2 = document.getElementById("chart2");
@@ -61,7 +64,7 @@ function render() {
     chart1 = renderTodChart(chart1, canvas1, filtered, activeBuckets, cumsumBox.checked);
     chart2 = renderIntensityChart(chart2, canvas2, filtered, activeBuckets);
     chart3 = renderSumFrequencyChart(chart3, canvas3, filtered, activeBuckets);
-    chart4 = renderInterarrivalChart(chart4, canvas4, filtered, activeBuckets);
+    chart4 = renderInterarrivalChart(chart4, canvas4, filtered, activeBuckets, gapMaxBox.checked, gapMeanBox.checked, gapMedianBox.checked);
 }
 
 //  Initialise
@@ -107,6 +110,9 @@ async function init() {
         render();
     });
     cumsumBox.addEventListener("change", render);
+    gapMaxBox.addEventListener("change", render);
+    gapMeanBox.addEventListener("change", render);
+    gapMedianBox.addEventListener("change", render);
 
     // Info panel toggle
     document.querySelector("main").addEventListener("click", e => {

@@ -225,9 +225,12 @@ export function renderTodChart(oldChart, canvas, filtered, activeBuckets, showCu
  * @param {HTMLCanvasElement} canvas
  * @param {Array} filtered
  * @param {string[]} activeBuckets
+ * @param {boolean} showMax
+ * @param {boolean} showMean
+ * @param {boolean} showMedian
  * @returns {Chart|null}
  */
-export function renderInterarrivalChart(oldChart, canvas, filtered, activeBuckets) {
+export function renderInterarrivalChart(oldChart, canvas, filtered, activeBuckets, showMax, showMean, showMedian) {
     if (oldChart) oldChart.destroy();
     if (filtered.length < 2) return null;
 
@@ -253,26 +256,71 @@ export function renderInterarrivalChart(oldChart, canvas, filtered, activeBucket
 
     const totalGaps = [...gapsByBucket.values()].reduce((s, a) => s + a.length, 0);
 
+    const datasets = [{
+        label: "Inter-event gap (h)",
+        data: labels.map(lbl => gapsByBucket.get(lbl) ?? null),
+        backgroundColor: "rgba(99, 102, 241, 0.2)",
+        borderColor: "rgba(99, 102, 241, 0.9)",
+        borderWidth: 1,
+        medianColor: "rgba(99, 102, 241, 1.0)",
+        itemRadius: totalGaps > 1000 ? 0 : 4,
+        itemBackgroundColor: "rgba(99, 102, 241, 0.55)",
+        itemBorderColor: "rgba(99, 102, 241, 0.9)",
+        itemBorderWidth: 0,
+        outlierRadius: 3,
+        outlierBackgroundColor: "rgba(239, 68, 68, 0.6)",
+        outlierBorderColor: "rgba(239, 68, 68, 0.9)",
+    }];
+
+    if (showMax || showMean || showMedian) {
+        const statData = labels.map(lbl => {
+            const gaps = gapsByBucket.get(lbl);
+            if (!gaps || gaps.length === 0) return { max: null, mean: null, median: null };
+            const s = [...gaps].sort((a, b) => a - b);
+            const mid = Math.floor(s.length / 2);
+            return {
+                max: s[s.length - 1],
+                mean: gaps.reduce((acc, v) => acc + v, 0) / gaps.length,
+                median: s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2,
+            };
+        });
+
+        const lineBase = {
+            type: "line",
+            borderWidth: 3,
+            pointRadius: 2,
+            fill: false,
+            tension: 0.3,
+            spanGaps: true,
+            backgroundColor: "transparent",
+            order: -1,
+        };
+
+        if (showMax) datasets.push({
+            ...lineBase,
+            label: "Max",
+            data: statData.map(d => d.max),
+            borderColor: "rgb(239, 68, 68)",
+        });
+
+        if (showMean) datasets.push({
+            ...lineBase,
+            label: "Mean",
+            data: statData.map(d => d.mean),
+            borderColor: "rgb(234, 179, 8)",
+        });
+
+        if (showMedian) datasets.push({
+            ...lineBase,
+            label: "Median",
+            data: statData.map(d => d.median),
+            borderColor: "rgb(34, 197, 94)",
+        });
+    }
+
     return new Chart(canvas, {
         type: "boxplot",
-        data: {
-            labels,
-            datasets: [{
-                label: "Inter-event gap (h)",
-                data: labels.map(lbl => gapsByBucket.get(lbl) ?? null),
-                backgroundColor: "rgba(99, 102, 241, 0.2)",
-                borderColor: "rgba(99, 102, 241, 0.9)",
-                borderWidth: 1,
-                medianColor: "rgba(99, 102, 241, 1.0)",
-                itemRadius: totalGaps > 1000 ? 0 : 4,
-                itemBackgroundColor: "rgba(99, 102, 241, 0.55)",
-                itemBorderColor: "rgba(99, 102, 241, 0.9)",
-                itemBorderWidth: 0,
-                outlierRadius: 3,
-                outlierBackgroundColor: "rgba(239, 68, 68, 0.6)",
-                outlierBorderColor: "rgba(239, 68, 68, 0.9)",
-            }],
-        },
+        data: { labels, datasets },
         options: {
             animation: false,
             responsive: true,
@@ -293,13 +341,17 @@ export function renderInterarrivalChart(oldChart, canvas, filtered, activeBucket
                         },
                         label(ctx) {
                             const v = ctx.parsed;
+                            if (ctx.dataset.type === "line") {
+                                if (v.y == null) return null;
+                                return `${ctx.dataset.label}: ${v.y.toFixed(1)} h`;
+                            }
                             if (!v || v.median == null) return null;
-                            return [
-                                `Median: ${v.median.toFixed(1)} h`,
-                                `Mean: ${v.mean.toFixed(1)} h`,
-                                `IQR: ${v.q1.toFixed(1)} – ${v.q3.toFixed(1)} h`,
-                                `Range: ${v.min.toFixed(1)} – ${v.max.toFixed(1)} h`,
-                            ];
+                            const lines = [];
+                            if (!showMedian) lines.push(`Median: ${v.median.toFixed(1)} h`);
+                            if (!showMean) lines.push(`Mean: ${v.mean.toFixed(1)} h`);
+                            lines.push(`IQR: ${v.q1.toFixed(1)} – ${v.q3.toFixed(1)} h`);
+                            lines.push(`Range: ${v.min.toFixed(1)} – ${v.max.toFixed(1)} h`);
+                            return lines;
                         },
                     },
                 },
